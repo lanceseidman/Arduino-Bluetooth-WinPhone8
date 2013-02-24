@@ -69,7 +69,6 @@ namespace Arduino2WP8
     {
         // Let's Define what we'll use throughout our App
         StreamSocket BTSock; // Socket used to Communicate with the Arduino/BT Module
-
         /* This is used for our Speech App
          * SpeechRecognizer mySpeech; // Used for Recognizing App Speech (not yet in this App)
          * SpeechSynthesizer mySpeechSS = new SpeechSynthesizer();
@@ -78,8 +77,9 @@ namespace Arduino2WP8
          * WebClient wc = new WebClient(); // Setting up our WebClient so we can just use "wc" and could be used to get an API
         */
 
-        /* Let's Store our Strings
-        string BT_Received = ""; // We'll use to store Bluetooth Received Data
+        // Let's Store our Strings
+        string BTStatus = ""; // Used to Store if we can send Message (e.g. yes or no)
+        /*string BT_Received = ""; // We'll use to store Bluetooth Received Data
         string whattosay = ""; // Used later to accept input for Speech */
 
         // Constructor
@@ -96,11 +96,13 @@ namespace Arduino2WP8
             }
 
             Loaded +=MainPage_Loaded; // We need Async, so Use _Loaded
-               
+           // PeerFinder.TriggeredConnectionStateChanged += PeerFinder_TriggeredConnectionStateChanged; // Check Connection State
 
         }
+
         private async void  MainPage_Loaded(object sender, RoutedEventArgs e)
         {
+            PeerFinder.Start();
             PeerFinder.AlternateIdentities["Bluetooth:Paired"] = ""; // Find/Get All Paired BT Devices
             var peers = await PeerFinder.FindAllPeersAsync(); // Make peers the container for All BT Devices
             txtBTStatus.Text = "Finding Paired Devices..."; // Tell UI what is going on in case it's Slow
@@ -137,6 +139,7 @@ namespace Arduino2WP8
                     var datab = GetBufferFromByteArray(UTF8Encoding.UTF8.GetBytes(WhatToSend)); // Create Buffer/Packet for Sending
                     await BTSock.OutputStream.WriteAsync(datab); // Send our Message to Connected Arduino
                     txtBTStatus.Text = "Message Sent (" + WhatToSend + ")"; // Show what we sent to Device to UI
+                   
                 }
         }
 
@@ -169,11 +172,9 @@ namespace Arduino2WP8
             else
                 if (lstBTPaired.SelectedItem != null) // Just making sure something was Selected
                 {
-                    
-                   // btnConnectArduino.IsEnabled = true; // Since an item is Selected, Enable Connect Button (If using a Button)
-                    
 
-                    var PD = await PeerFinder.FindAllPeersAsync(); // Store Paired to PD
+                    // btnConnectArduino.IsEnabled = true; // Since an item is Selected, Enable Connect Button (If using a Button)
+
 
                     /* This is a trick to Grab the Item and Remove '(' and ')' if using the Hostname & want just the Contents (00:00:00)
                     // Of course we don't HAVE to do this, but this is a C# Trick/Hack to learn String Functions
@@ -194,11 +195,29 @@ namespace Arduino2WP8
                     // Once Connected, let's give Arduino a HELLO
                     var datab = GetBufferFromByteArray(Encoding.UTF8.GetBytes("HELLO")); // Create Buffer/Packet for Sending
                     await BTSock.OutputStream.WriteAsync(datab); // Send Arduino Buffer/Packet Message
-                    
+
                     btnSendCommand.IsEnabled = true; // Allow commands to be sent via Command Button (Enabled)
-                    txtBTStatus.Text = "Connected. Now you can Send Commands"; // Update UI now able to Send Commands
                 }
-            
+        }
+
+
+        void PeerFinder_TriggeredConnectionStateChanged(object sender, TriggeredConnectionStateChangedEventArgs args)
+        {
+            // This will be used to Get Data from our Hardware soon
+
+            if (args.State == TriggeredConnectState.Failed)
+            {
+                txtBTStatus.Text = "Failed to Connect... Try again!";
+                BTStatus = "no"; // Not connected
+                return;
+            }
+
+            if (args.State == TriggeredConnectState.Completed)
+            {
+                txtBTStatus.Text = "Connected!";
+                BTStatus = "yes"; // Means we are connected
+                MessageBox.Show("hi");
+            }
         }
 
         private void btnSendCommand_Click(object sender, RoutedEventArgs e)

@@ -2,7 +2,6 @@
 
 int BTTx = 2; // Sparkfun Bluetooth Module: TX
 int BTRx = 3; // Sparkfun Bluetooth Module: RX
-int motor = 10; // I have my Motor Wheel on
 int led = 13; // My LED to Lightup
 
 // Setup SoftwareSerial to use 'BT' & Read TX/RX Pins
@@ -12,8 +11,6 @@ void setup()
 {
   // Setup LED
   pinMode(led, OUTPUT);
-  // Setup Motor
-  pinMode(motor, OUTPUT);
   
   // Setup USB Serial2PC (Listen/Output Received in Serial Monitor)
   Serial.begin(9600);
@@ -33,9 +30,6 @@ void setup()
 
 void loop()
 {
-  // Setup Robot Motor ON (Only cause issue starting motor)
-  digitalWrite(motor, HIGH);
-  
   // Setup LED ON (Since I have the Motor on first)
   digitalWrite(led, HIGH);
 
@@ -46,18 +40,18 @@ void loop()
     char GetBT = (char)BT.read();
     // Print out what we Received (Testing)
     Serial.print(GetBT);
+    BT.print("Hello");
     // In Windows Phone we made a incoming of 3
     if(GetBT == '3')
     {
-      // Setup Robot Motor OFF
-      digitalWrite(motor, LOW);
+      
+      
       // Set LED Off
       digitalWrite(led, LOW);
       delay(5000); // Pause for 5s
       
       // Turn everything back ON (Motor + LED)
       digitalWrite(led, HIGH);
-      digitalWrite(motor, HIGH);
     }
   }
 }
