@@ -114,7 +114,7 @@ namespace Arduino2WP8
             // peers[0].DisplayName.Contains("RN42-5");
 
             // Let's show only the first 2 Devices Paired
-            for (int i = 0; i < 2; i++)
+            for (int i = 0; i < peers.Count; i++)
             {
                 lstBTPaired.Items.Add(peers[i].DisplayName);
             }
